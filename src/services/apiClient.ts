@@ -114,6 +114,18 @@ class ApiClient {
   ): Promise<T> {
     return this.request<T>(endpoint, { method: "DELETE", headers });
   }
+
+  // Timer API methods
+  async getTime(documentId: string) {
+    return this.get(`/get-time/${documentId}`);
+  }
+
+  async submitTime(documentId: string, timeSpent: string) {
+    return this.post("/submit-time", {
+      document_id: documentId,
+      time_spent: timeSpent,
+    });
+  }
 }
 
 // Export a singleton instance

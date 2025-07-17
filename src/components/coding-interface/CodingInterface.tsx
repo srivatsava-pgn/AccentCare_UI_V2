@@ -27,7 +27,9 @@ interface CodingInterfaceProps {
   reviewStats: ApiReviewStats | null;
   comments: Record<string, any[]>;
   onReturnToDashboard: () => void;
-  onLogout?: () => void; // Add logout prop
+  onLogout?: () => void;
+  timerStartTime?: string;
+  onTimerUpdate?: (time: string) => void;
 }
 
 export const CodingInterface: React.FC<CodingInterfaceProps> = ({
@@ -40,6 +42,8 @@ export const CodingInterface: React.FC<CodingInterfaceProps> = ({
   comments,
   onReturnToDashboard,
   onLogout,
+  timerStartTime,
+  onTimerUpdate,
 }) => {
   const documentViewer = useDocumentViewer(documents, documentContent);
   const codingState = useCodingState({
@@ -255,8 +259,6 @@ export const CodingInterface: React.FC<CodingInterfaceProps> = ({
     });
   };
 
-  // Logout handler
-
   // Filter codes based on active tab and search term
   const getFilteredCodes = () => {
     const allCodes = [
@@ -302,7 +304,9 @@ export const CodingInterface: React.FC<CodingInterfaceProps> = ({
       <BrandedHeader
         selectedEpisodeDocId={selectedEpisodeDocId}
         onReturnToDashboard={onReturnToDashboard}
-        onLogout={onLogout || onReturnToDashboard} // Use logout prop if available
+        onLogout={onLogout || onReturnToDashboard}
+        timerStartTime={timerStartTime}
+        onTimerUpdate={onTimerUpdate}
       />
 
       {/* Main Content Area */}

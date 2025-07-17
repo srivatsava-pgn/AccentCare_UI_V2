@@ -1,5 +1,11 @@
-import { ChevronDown, LayoutDashboard, LogOut, User } from "lucide-react";
-import React, { useState } from "react";
+import {
+  ChevronDown,
+  Clock,
+  LayoutDashboard,
+  LogOut,
+  User,
+} from "lucide-react";
+import React, { useEffect, useState } from "react";
 import PenguinLogo from "../../../public/images/penguin-logo.svg";
 
 import Penguin from "../../../public/images/Penguinai-name.png";
@@ -7,14 +13,84 @@ interface BrandedHeaderProps {
   selectedEpisodeDocId: string;
   onReturnToDashboard: () => void;
   onLogout: () => void;
+  timerStartTime?: string;
+  onTimerUpdate?: (time: string) => void;
 }
 
 export const BrandedHeader: React.FC<BrandedHeaderProps> = ({
   selectedEpisodeDocId,
   onReturnToDashboard,
   onLogout,
+  timerStartTime = "00:00:00",
+  onTimerUpdate,
 }) => {
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [currentTime, setCurrentTime] = useState(timerStartTime);
+  const [isTimerRunning, setIsTimerRunning] = useState(true); // Start timer immediately
+
+  // Parse time string (HH:MM:SS) to seconds
+  const parseTimeToSeconds = (timeString: string): number => {
+    const [hours, minutes, seconds] = timeString.split(":").map(Number);
+    return hours * 3600 + minutes * 60 + seconds;
+  };
+
+  // Format seconds to HH:MM:SS
+  const formatSecondsToTime = (totalSeconds: number): string => {
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    return `${hours.toString().padStart(2, "0")}:${minutes
+      .toString()
+      .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+  };
+
+  // Initialize timer with the provided start time
+  useEffect(() => {
+    setCurrentTime(timerStartTime);
+    setIsTimerRunning(true);
+  }, [timerStartTime]);
+
+  // Expose timer controls to parent
+  useEffect(() => {
+    window.timerControls = {
+      startTimer: (initialTime: string) => {
+        setCurrentTime(initialTime);
+        setIsTimerRunning(true);
+      },
+      stopTimer: () => {
+        setIsTimerRunning(false);
+      },
+      getCurrentTime: () => currentTime,
+    };
+  }, [currentTime]);
+
+  // Timer effect
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+
+    if (isTimerRunning) {
+      intervalId = setInterval(() => {
+        setCurrentTime((prevTime) => {
+          const newSeconds = parseTimeToSeconds(prevTime) + 1;
+          const newTime = formatSecondsToTime(newSeconds);
+
+          // Call onTimeUpdate if provided
+          if (onTimerUpdate) {
+            onTimerUpdate(newTime);
+          }
+
+          return newTime;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [isTimerRunning, onTimerUpdate]);
 
   const handleLogout = () => {
     setShowUserMenu(false);
@@ -35,6 +111,14 @@ export const BrandedHeader: React.FC<BrandedHeaderProps> = ({
           <div className="bg-blue-100 px-3 py-1 rounded-lg">
             <div className="text-sm font-bold text-blue-800">
               Episode: {selectedEpisodeDocId}
+            </div>
+          </div>
+
+          {/* Timer Display */}
+          <div className="bg-green-100 px-3 py-1 rounded-lg flex items-center gap-2">
+            <Clock className="w-4 h-4 text-green-600" />
+            <div className="text-sm font-bold text-green-800">
+              {currentTime}
             </div>
           </div>
         </div>

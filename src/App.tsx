@@ -1,21 +1,34 @@
 import { AlertCircle, RefreshCw } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LoginPage } from "./components/auth/LoginPage";
 import { CodingInterface } from "./components/coding-interface/CodingInterface";
 import { DashboardView } from "./components/dashboard/DashboardView";
 import { useAuth } from "./hooks/useAuth";
 import { useCodingResultsApi } from "./hooks/useCodingResultsApi";
 import { useDocumentApi } from "./hooks/useDocumentApi";
+import { apiClient } from "./services/apiClient";
+
+// Add timer controls to window
+declare global {
+  interface Window {
+    timerControls?: {
+      startTimer: (initialTime: string) => void;
+      stopTimer: () => void;
+      getCurrentTime: () => string;
+    };
+  }
+}
 
 const HomeHealthCodingInterface = () => {
   // Core state management hooks
   const auth = useAuth();
 
   // Local component state
-  const [showDashboard, setShowDashboard] = useState(true); // Start with dashboard after login
+  const [showDashboard, setShowDashboard] = useState(true);
   const [selectedEpisodeDocId, setSelectedEpisodeDocId] = useState<
     string | null
   >(null);
+  const [currentTime, setCurrentTime] = useState("00:00:00");
 
   // API hooks
   const {
@@ -33,24 +46,83 @@ const HomeHealthCodingInterface = () => {
     error: codingError,
   } = useCodingResultsApi(selectedEpisodeDocId);
 
+  // Timer functions
+  const getTime = async (documentId: string) => {
+    try {
+      const response = await apiClient.getTime(documentId);
+      return response.accumulated_time || "00:00:00";
+    } catch (error) {
+      console.error("Error getting time:", error);
+      return "00:00:00";
+    }
+  };
+
+  const submitTime = async (documentId: string, timeSpent: string) => {
+    try {
+      await apiClient.submitTime(documentId, timeSpent);
+      console.log("Time submitted successfully");
+    } catch (error) {
+      console.error("Error submitting time:", error);
+    }
+  };
+
   // Event handlers
-  const startCoding = (docId: string) => {
+  const startCoding = async (docId: string) => {
     setSelectedEpisodeDocId(docId);
     setShowDashboard(false);
+
+    // Get current time for this document
+    const accumulatedTime = await getTime(docId);
+    setCurrentTime(accumulatedTime);
   };
 
-  const returnToDashboard = () => {
+  const returnToDashboard = async () => {
+    // Submit current time before returning to dashboard
+    if (selectedEpisodeDocId && window.timerControls) {
+      const timeToSubmit = window.timerControls.getCurrentTime();
+      await submitTime(selectedEpisodeDocId, timeToSubmit);
+      window.timerControls.stopTimer();
+    }
+
     setShowDashboard(true);
     setSelectedEpisodeDocId(null);
+    setCurrentTime("00:00:00");
   };
 
-  const handleLogout = () => {
-    // Properly logout: clear token, reset state, and redirect to login
-    auth.logout(); // This clears the token and sets isLoggedIn to false
+  const handleLogout = async () => {
+    // Submit current time before logout
+    if (selectedEpisodeDocId && window.timerControls) {
+      const timeToSubmit = window.timerControls.getCurrentTime();
+      await submitTime(selectedEpisodeDocId, timeToSubmit);
+      window.timerControls.stopTimer();
+    }
+
+    auth.logout();
     setShowDashboard(true);
     setSelectedEpisodeDocId(null);
+    setCurrentTime("00:00:00");
     window.location.reload();
   };
+
+  const handleTimerUpdate = (newTime: string) => {
+    setCurrentTime(newTime);
+  };
+
+  // Handle page refresh/unload
+  useEffect(() => {
+    const handleBeforeUnload = async () => {
+      if (selectedEpisodeDocId && window.timerControls) {
+        const timeToSubmit = window.timerControls.getCurrentTime();
+        await submitTime(selectedEpisodeDocId, timeToSubmit);
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [selectedEpisodeDocId]);
 
   // Render different views based on state
   if (!auth.isLoggedIn) {
@@ -122,6 +194,8 @@ const HomeHealthCodingInterface = () => {
       comments={comments}
       onReturnToDashboard={returnToDashboard}
       onLogout={handleLogout}
+      timerStartTime={currentTime}
+      onTimerUpdate={handleTimerUpdate}
     />
   );
 };

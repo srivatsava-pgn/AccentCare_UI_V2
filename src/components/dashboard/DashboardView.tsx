@@ -38,6 +38,30 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   } = useDashboardApi();
   const [showUserMenu, setShowUserMenu] = useState(false);
 
+  // Helper function to format accuracy score
+  const formatAccuracyScore = (score: string) => {
+    if (!score) return "N/A";
+
+    // If it's in format "65.29411764705883/100", extract and format
+    if (score.includes("/")) {
+      const [numerator, denominator] = score.split("/");
+      const numericValue = parseFloat(numerator);
+      return `${numericValue.toFixed(2)}`;
+    }
+
+    // If it's just a number, format it
+    const numericValue = parseFloat(score);
+    return isNaN(numericValue) ? "N/A" : numericValue.toFixed(2);
+  };
+
+  // Helper function to format recall
+  const formatRecall = (recall: string) => {
+    if (!recall) return "N/A";
+
+    const numericValue = parseFloat(recall);
+    return isNaN(numericValue) ? "N/A" : `${numericValue.toFixed(2)}`;
+  };
+
   if (loading) {
     return (
       <div className="fixed inset-0 bg-white z-50 overflow-auto font-sans">
@@ -196,7 +220,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </div>
 
       {/* Dashboard Content */}
-      <div className="p-6 max-w-7xl mx-auto">
+      <div className="p-6 mx-auto" style={{ maxWidth: "90rem" }}>
         {/* Dashboard Title and Description */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -351,6 +375,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       Doc Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      Accuracy Score
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                      Recall
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -471,6 +501,23 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                           >
                             {episode.docStatus}
                           </span>
+                        </td>
+
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <div className="text-sm font-semibold text-gray-900">
+                              {formatAccuracyScore(
+                                episode?.accuracy_score?.total_score
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <div className="text-sm font-semibold text-gray-900">
+                              {formatRecall(episode?.accuracy_score?.recall)}
+                            </div>
+                          </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <button
