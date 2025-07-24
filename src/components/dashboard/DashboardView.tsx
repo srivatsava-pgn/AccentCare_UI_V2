@@ -220,7 +220,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </div>
 
       {/* Dashboard Content */}
-      <div className="p-6 mx-auto" style={{ maxWidth: "90rem" }}>
+      <div className="p-6 mx-auto" style={{ maxWidth: "95rem" }}>
         {/* Dashboard Title and Description */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -495,7 +495,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                               onStartCoding(episode.doc_id, "doc-status")
                             }
                             disabled={episode.inconsistencyStatus === "READY"}
-                            className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg transition-colors font-semibold text-sm ${
+                            className={`inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-colors font-semibold text-xs w-40 ${
                               episode.inconsistencyStatus === "READY"
                                 ? "bg-green-500 text-white cursor-not-allowed"
                                 : "bg-amber-500 text-white hover:bg-amber-600"
