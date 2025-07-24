@@ -107,6 +107,55 @@ const transformCodeSuggestionToSaveData = (
 
   // Transform comments to API format
   const apiComments = transformCommentsToApiFormat(codeComments);
+  console.log("Transforming code:", code);
+
+  // Helper function to safely convert timestamp to ISO string
+  const getCreatedAtISO = (
+    timestamp: string | undefined
+  ): string | undefined => {
+    if (!timestamp) {
+      return undefined;
+    }
+
+    try {
+      // Try to parse the timestamp
+      const date = new Date(timestamp);
+
+      // Check if the date is valid
+      if (isNaN(date.getTime())) {
+        // If the standard parsing fails, try parsing DD/MM/YYYY, HH:MM:SS format
+        const match = timestamp.match(
+          /^(\d{2})\/(\d{2})\/(\d{4}),\s+(\d{2}):(\d{2}):(\d{2})$/
+        );
+        if (match) {
+          const [, day, month, year, hour, minute, second] = match;
+          // Create date with MM/DD/YYYY format (month is 0-indexed)
+          const parsedDate = new Date(
+            parseInt(year),
+            parseInt(month) - 1,
+            parseInt(day),
+            parseInt(hour),
+            parseInt(minute),
+            parseInt(second)
+          );
+
+          if (!isNaN(parsedDate.getTime())) {
+            return parsedDate.toISOString();
+          }
+        }
+
+        console.warn(
+          `Invalid timestamp format: ${timestamp}. Using current timestamp instead.`
+        );
+        return new Date().toISOString();
+      }
+
+      return date.toISOString();
+    } catch (error) {
+      console.error(`Error parsing timestamp: ${timestamp}`, error);
+      return new Date().toISOString();
+    }
+  };
 
   return {
     code_id: code.apiCodeId || code.id,
@@ -136,9 +185,7 @@ const transformCodeSuggestionToSaveData = (
     comments: apiComments,
     deleted: false,
     added_by: code.isManuallyAdded ? "coder" : undefined,
-    created_at: code.addedTimestamp
-      ? new Date(code.addedTimestamp).toISOString()
-      : undefined,
+    created_at: getCreatedAtISO(code.addedTimestamp),
   };
 };
 
