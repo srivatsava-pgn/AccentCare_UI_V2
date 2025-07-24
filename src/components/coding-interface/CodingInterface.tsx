@@ -10,22 +10,26 @@ import {
   CodeSuggestion as CodeSuggestionType,
   Document,
   DocumentContent,
+  InconsistencyApiResponse,
   SelectedArea,
 } from "../../types";
 import { ICDModal } from "../medical-suggestions/ICDModal";
 import { PDFViewer } from "../pdf-viewer/PDFViewer";
 import { BrandedHeader } from "./BrandedHeader";
 import { CodingHeader } from "./CodingHeader";
+import { InconsistencyPanel } from "./InconsistencyPanel";
 import { MedicalSuggestionsPanel } from "./MedicalSuggestionsPanel";
 
 interface CodingInterfaceProps {
   selectedEpisodeDocId: string;
+  navigationMode: "coding" | "doc-status";
   documents: Document[];
   documentContent: Record<string, Record<number, DocumentContent>>;
   primarySuggestions: CodeSuggestionType[];
   secondarySuggestions: CodeSuggestionType[];
   reviewStats: ApiReviewStats | null;
   comments: Record<string, any[]>;
+  inconsistencyResult: InconsistencyApiResponse | null;
   onReturnToDashboard: () => void;
   onLogout?: () => void;
   timerStartTime?: string;
@@ -34,12 +38,14 @@ interface CodingInterfaceProps {
 
 export const CodingInterface: React.FC<CodingInterfaceProps> = ({
   selectedEpisodeDocId,
+  navigationMode,
   documents,
   documentContent,
   primarySuggestions,
   secondarySuggestions,
   reviewStats,
   comments,
+  inconsistencyResult,
   onReturnToDashboard,
   onLogout,
   timerStartTime,
@@ -259,6 +265,11 @@ export const CodingInterface: React.FC<CodingInterfaceProps> = ({
     });
   };
 
+  // Logout handler
+  const handleLogout = () => {
+    onReturnToDashboard();
+  };
+
   // Filter codes based on active tab and search term
   const getFilteredCodes = () => {
     const allCodes = [
@@ -396,23 +407,32 @@ export const CodingInterface: React.FC<CodingInterfaceProps> = ({
           className="bg-white flex flex-col"
           style={{ width: `${100 - resizablePanel.leftPanelWidth}%` }}
         >
-          <MedicalSuggestionsPanel
-            codingState={codingState}
-            icdSearch={icdSearch}
-            getFilteredCodes={getFilteredCodes}
-            commentEditMode={commentEditMode}
-            tempComments={tempComments}
-            isAddingComment={isAddingComment}
-            onStartAddingComment={startAddingComment}
-            onStartEditingComment={startEditingComment}
-            onSubmitNewComment={submitNewComment}
-            onSubmitEditComment={submitEditComment}
-            onCancelNewComment={cancelNewComment}
-            onCancelEditComment={cancelEditComment}
-            onCommentChange={handleCommentChange}
-            onNavigateToEvidence={documentViewer.navigateToEvidence}
-            onReturnToDashboard={onReturnToDashboard}
-          />
+          {navigationMode === "coding" ? (
+            <MedicalSuggestionsPanel
+              codingState={codingState}
+              icdSearch={icdSearch}
+              getFilteredCodes={getFilteredCodes}
+              commentEditMode={commentEditMode}
+              tempComments={tempComments}
+              isAddingComment={isAddingComment}
+              onStartAddingComment={startAddingComment}
+              onStartEditingComment={startEditingComment}
+              onSubmitNewComment={submitNewComment}
+              onSubmitEditComment={submitEditComment}
+              onCancelNewComment={cancelNewComment}
+              onCancelEditComment={cancelEditComment}
+              onCommentChange={handleCommentChange}
+              onNavigateToEvidence={documentViewer.navigateToEvidence}
+              onReturnToDashboard={onReturnToDashboard}
+            />
+          ) : (
+            <InconsistencyPanel
+              selectedEpisodeDocId={selectedEpisodeDocId}
+              inconsistencyResult={inconsistencyResult}
+              onNavigateToEvidence={documentViewer.navigateToEvidence}
+              onReturnToDashboard={onReturnToDashboard}
+            />
+          )}
         </div>
 
         {/* ICD Modal */}

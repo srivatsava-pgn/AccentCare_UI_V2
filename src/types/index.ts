@@ -125,6 +125,7 @@ export interface ProjectData {
   // Enhanced fields for dashboard display
   revenueRate?: string;
   docStatus?: DocStatusType;
+  inconsistencyStatus?: "COMPLETE" | "INCOMPLETE" | "ERROR" | "UNKNOWN";
 }
 
 export interface ProjectsApiResponse {
@@ -238,4 +239,38 @@ export interface SearchHighlight {
   page: number;
   textSnippet: string;
   matchScore: number;
+}
+
+// Navigation mode type for different views
+export type NavigationMode = "coding" | "doc-status";
+
+// Inconsistency API interfaces
+export interface InconsistencySupportingSentence {
+  source_document_name: string;
+  dos: string;
+  section: string;
+  sentence: string;
+  page_number: number;
+  bbox: number[][][];
+}
+
+export interface InconsistencyResult {
+  diagnosis_mentioned_in_referral_order: string;
+  focus_of_care_mentioned_in_driveway: string;
+  phase_of_care_mentioned_in_focus_of_care: string;
+  phase_of_care_mentioned_in_f2f: string;
+  diagnosis_mentioned_in_referral_order_and_focus_of_care_mentioned_in_driveway_match: boolean;
+  is_focus_of_care_primary_diagnosis_in_hp: boolean;
+  diagnosis_mentioned_in_referral_order_is_primary_diagnosis_in_hp: boolean;
+  focus_of_care_primary_diagnosis_in_hp_match: boolean;
+  phase_of_care_in_focus_of_care_and_phase_of_care_in_f2f_match: boolean;
+  supporting_sentences: InconsistencySupportingSentence[];
+  reasoning: string;
+  coding_ready: boolean;
+  coordination_note: string;
+}
+
+export interface InconsistencyApiResponse {
+  status: "COMPLETE" | "INCOMPLETE";
+  results: InconsistencyResult | any[];
 }

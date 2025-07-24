@@ -7,6 +7,7 @@ import { useAuth } from "./hooks/useAuth";
 import { useCodingResultsApi } from "./hooks/useCodingResultsApi";
 import { useDocumentApi } from "./hooks/useDocumentApi";
 import { apiClient } from "./services/apiClient";
+import { InconsistencyApiResponse } from "./types";
 
 // Add timer controls to window
 declare global {
@@ -29,6 +30,11 @@ const HomeHealthCodingInterface = () => {
     string | null
   >(null);
   const [currentTime, setCurrentTime] = useState("00:00:00");
+  const [navigationMode, setNavigationMode] = useState<"coding" | "doc-status">(
+    "coding"
+  );
+  const [inconsistencyResult, setInconsistencyResult] =
+    useState<InconsistencyApiResponse | null>(null);
 
   // API hooks
   const {
@@ -67,8 +73,28 @@ const HomeHealthCodingInterface = () => {
   };
 
   // Event handlers
-  const startCoding = async (docId: string) => {
+  const startCoding = async (
+    docId: string,
+    mode: "coding" | "doc-status" = "coding"
+  ) => {
     setSelectedEpisodeDocId(docId);
+    setNavigationMode(mode);
+
+    // If navigating to doc-status mode, fetch inconsistency data
+    if (mode === "doc-status") {
+      try {
+        const data: InconsistencyApiResponse = await apiClient.get(
+          `/inconsistency-results/${docId}`
+        );
+        setInconsistencyResult(data);
+      } catch (error) {
+        console.error("Error fetching inconsistency data:", error);
+        setInconsistencyResult(null);
+      }
+    } else {
+      setInconsistencyResult(null);
+    }
+
     setShowDashboard(false);
 
     // Get current time for this document
@@ -86,6 +112,8 @@ const HomeHealthCodingInterface = () => {
 
     setShowDashboard(true);
     setSelectedEpisodeDocId(null);
+    setNavigationMode("coding");
+    setInconsistencyResult(null);
     setCurrentTime("00:00:00");
   };
 
@@ -100,6 +128,8 @@ const HomeHealthCodingInterface = () => {
     auth.logout();
     setShowDashboard(true);
     setSelectedEpisodeDocId(null);
+    setNavigationMode("coding");
+    setInconsistencyResult(null);
     setCurrentTime("00:00:00");
     window.location.reload();
   };
@@ -186,12 +216,14 @@ const HomeHealthCodingInterface = () => {
   return (
     <CodingInterface
       selectedEpisodeDocId={selectedEpisodeDocId!}
+      navigationMode={navigationMode}
       documents={documents}
       documentContent={documentContent}
       primarySuggestions={primarySuggestions}
       secondarySuggestions={secondarySuggestions}
       reviewStats={reviewStats}
       comments={comments}
+      inconsistencyResult={inconsistencyResult}
       onReturnToDashboard={returnToDashboard}
       onLogout={handleLogout}
       timerStartTime={currentTime}

@@ -19,7 +19,7 @@ import { useDashboardApi } from "../../hooks/useDashboardApi";
 
 import Penguin from "../../../public/images/Penguinai-name.png";
 interface DashboardViewProps {
-  onStartCoding: (docId: string) => void;
+  onStartCoding: (docId: string, mode?: "coding" | "doc-status") => void;
   onLogout: () => void;
 }
 
@@ -371,7 +371,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider hidden">
                       Revenue Rate
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider hidden">
+                    <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                       Doc Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
@@ -489,18 +489,29 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                           </div>
                         </td>
                         {/* Hidden Doc Status Column */}
-                        <td className="px-6 py-4 whitespace-nowrap hidden">
-                          <span
-                            className={`inline-flex px-2 py-1 text-xs font-bold rounded-full ${
-                              episode.docStatus === "Complete"
-                                ? "bg-green-100 text-green-800"
-                                : episode.docStatus === "Inconsistent"
-                                ? "bg-red-100 text-red-800"
-                                : "bg-orange-100 text-orange-800"
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <button
+                            onClick={() =>
+                              onStartCoding(episode.doc_id, "doc-status")
+                            }
+                            disabled={episode.inconsistencyStatus === "READY"}
+                            className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg transition-colors font-semibold text-sm ${
+                              episode.inconsistencyStatus === "READY"
+                                ? "bg-green-500 text-white cursor-not-allowed"
+                                : "bg-amber-500 text-white hover:bg-amber-600"
                             }`}
                           >
-                            {episode.docStatus}
-                          </span>
+                            {episode.inconsistencyStatus === "READY" ? (
+                              <CheckCircle className="w-4 h-4" />
+                            ) : (
+                              <Eye className="w-4 h-4" />
+                            )}
+                            <span>
+                              {episode.inconsistencyStatus === "READY"
+                                ? "COMPLETE"
+                                : episode.inconsistencyStatus || "UNKNOWN"}
+                            </span>
+                          </button>
                         </td>
 
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -521,7 +532,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <button
-                            onClick={() => onStartCoding(episode.doc_id)}
+                            onClick={() =>
+                              onStartCoding(episode.doc_id, "coding")
+                            }
                             className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold text-sm"
                           >
                             <Eye className="w-4 h-4" />
