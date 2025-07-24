@@ -314,6 +314,7 @@ export const CodingInterface: React.FC<CodingInterfaceProps> = ({
       {/* Branded Header */}
       <BrandedHeader
         selectedEpisodeDocId={selectedEpisodeDocId}
+        navigationMode={navigationMode} // Pass navigationMode prop
         onReturnToDashboard={onReturnToDashboard}
         onLogout={onLogout || onReturnToDashboard}
         timerStartTime={timerStartTime}

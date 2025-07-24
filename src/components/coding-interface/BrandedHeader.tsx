@@ -11,6 +11,7 @@ import PenguinLogo from "../../../public/images/penguin-logo.svg";
 import Penguin from "../../../public/images/Penguinai-name.png";
 interface BrandedHeaderProps {
   selectedEpisodeDocId: string;
+  navigationMode: "coding" | "doc-status"; // Add navigationMode prop
   onReturnToDashboard: () => void;
   onLogout: () => void;
   timerStartTime?: string;
@@ -19,6 +20,7 @@ interface BrandedHeaderProps {
 
 export const BrandedHeader: React.FC<BrandedHeaderProps> = ({
   selectedEpisodeDocId,
+  navigationMode, // Receive navigationMode prop
   onReturnToDashboard,
   onLogout,
   timerStartTime = "00:00:00",
@@ -26,7 +28,9 @@ export const BrandedHeader: React.FC<BrandedHeaderProps> = ({
 }) => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [currentTime, setCurrentTime] = useState(timerStartTime);
-  const [isTimerRunning, setIsTimerRunning] = useState(true); // Start timer immediately
+  const [isTimerRunning, setIsTimerRunning] = useState(
+    navigationMode === "coding"
+  ); // Only start for coding mode
 
   // Parse time string (HH:MM:SS) to seconds
   const parseTimeToSeconds = (timeString: string): number => {
@@ -45,31 +49,40 @@ export const BrandedHeader: React.FC<BrandedHeaderProps> = ({
       .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
   };
 
-  // Initialize timer with the provided start time
+  // Initialize timer with the provided start time only for coding mode
   useEffect(() => {
-    setCurrentTime(timerStartTime);
-    setIsTimerRunning(true);
-  }, [timerStartTime]);
+    if (navigationMode === "coding") {
+      setCurrentTime(timerStartTime);
+      setIsTimerRunning(true);
+    } else {
+      setIsTimerRunning(false);
+    }
+  }, [timerStartTime, navigationMode]);
 
-  // Expose timer controls to parent
+  // Expose timer controls to parent only for coding mode
   useEffect(() => {
-    window.timerControls = {
-      startTimer: (initialTime: string) => {
-        setCurrentTime(initialTime);
-        setIsTimerRunning(true);
-      },
-      stopTimer: () => {
-        setIsTimerRunning(false);
-      },
-      getCurrentTime: () => currentTime,
-    };
-  }, [currentTime]);
+    if (navigationMode === "coding") {
+      window.timerControls = {
+        startTimer: (initialTime: string) => {
+          setCurrentTime(initialTime);
+          setIsTimerRunning(true);
+        },
+        stopTimer: () => {
+          setIsTimerRunning(false);
+        },
+        getCurrentTime: () => currentTime,
+      };
+    } else {
+      // Clear timer controls for doc-status mode
+      window.timerControls = undefined;
+    }
+  }, [currentTime, navigationMode]);
 
-  // Timer effect
+  // Timer effect - only run for coding mode
   useEffect(() => {
     let intervalId: NodeJS.Timeout;
 
-    if (isTimerRunning) {
+    if (isTimerRunning && navigationMode === "coding") {
       intervalId = setInterval(() => {
         setCurrentTime((prevTime) => {
           const newSeconds = parseTimeToSeconds(prevTime) + 1;
@@ -90,7 +103,7 @@ export const BrandedHeader: React.FC<BrandedHeaderProps> = ({
         clearInterval(intervalId);
       }
     };
-  }, [isTimerRunning, onTimerUpdate]);
+  }, [isTimerRunning, onTimerUpdate, navigationMode]);
 
   const handleLogout = () => {
     setShowUserMenu(false);
@@ -114,13 +127,15 @@ export const BrandedHeader: React.FC<BrandedHeaderProps> = ({
             </div>
           </div>
 
-          {/* Timer Display */}
-          <div className="bg-green-100 px-3 py-1 rounded-lg flex items-center gap-2">
-            <Clock className="w-4 h-4 text-green-600" />
-            <div className="text-sm font-bold text-green-800">
-              {currentTime}
+          {/* Timer Display - Only show for coding mode */}
+          {navigationMode === "coding" && (
+            <div className="bg-green-100 px-3 py-1 rounded-lg flex items-center gap-2">
+              <Clock className="w-4 h-4 text-green-600" />
+              <div className="text-sm font-bold text-green-800">
+                {currentTime}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Right side - Dashboard Button and User Profile */}
