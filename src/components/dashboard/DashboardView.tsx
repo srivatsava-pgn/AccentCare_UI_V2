@@ -410,38 +410,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center gap-2">
-                            {episode.review_status === "COMPLETED" ? (
-                              <>
-                                <CheckCircle className="w-4 h-4 text-green-600" />
-                                <span className="inline-flex px-2 py-1 text-xs font-bold rounded-full bg-green-100 text-green-800">
-                                  COMPLETED
-                                </span>
-                              </>
-                            ) : episode.review_status === "YET TO REVIEW" ? (
-                              <>
-                                <Clock className="w-4 h-4 text-gray-600" />
-                                <span className="inline-flex px-2 py-1 text-xs font-bold rounded-full bg-gray-100 text-gray-800">
-                                  YET TO REVIEW
-                                </span>
-                              </>
-                            ) : (
-                              <>
-                                <Clock
-                                  className="w-4 h-4 text-yellow-600"
-                                  style={{ color: "#000" }}
-                                />
-                                <span
-                                  className="inline-flex px-2 py-1 text-xs font-bold rounded-full bg-yellow-100 text-black-800"
-                                  style={{ background: "#ffff00" }}
-                                >
-                                  {episode.review_status}
-                                </span>
-                              </>
-                            )}
-                          </div>
-                        </td>
 
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-4">
@@ -482,6 +450,39 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                           </div>
                         </td>
 
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            {episode.review_status === "COMPLETED" ? (
+                              <>
+                                <CheckCircle className="w-4 h-4 text-green-600" />
+                                <span className="inline-flex px-2 py-1 text-xs font-bold rounded-full bg-green-100 text-green-800">
+                                  COMPLETED
+                                </span>
+                              </>
+                            ) : episode.review_status === "YET TO REVIEW" ? (
+                              <>
+                                <Clock className="w-4 h-4 text-gray-600" />
+                                <span className="inline-flex px-2 py-1 text-xs font-bold rounded-full bg-gray-100 text-gray-800">
+                                  YET TO REVIEW
+                                </span>
+                              </>
+                            ) : (
+                              <>
+                                <Clock
+                                  className="w-4 h-4 text-yellow-600"
+                                  style={{ color: "#000" }}
+                                />
+                                <span
+                                  className="inline-flex px-2 py-1 text-xs font-bold rounded-full bg-yellow-100 text-black-800"
+                                  style={{ background: "#ffff00" }}
+                                >
+                                  {episode.review_status}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        </td>
+
                         {/* Hidden Revenue Rate Column */}
                         <td className="px-6 py-4 whitespace-nowrap hidden">
                           <div className="text-sm font-bold text-gray-900">
@@ -490,30 +491,31 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                         </td>
                         {/* Hidden Doc Status Column */}
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <button
-                            onClick={() =>
-                              onStartCoding(episode.doc_id, "doc-status")
-                            }
-                            disabled={episode.inconsistencyStatus === "READY"}
-                            className={`inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-colors font-semibold text-xs w-40 ${
-                              episode.inconsistencyStatus === "READY"
-                                ? "bg-green-500 text-white cursor-not-allowed"
-                                : "bg-amber-500 text-white hover:bg-amber-600"
-                            }`}
-                          >
-                            {episode.inconsistencyStatus === "READY" ? (
-                              <CheckCircle className="w-4 h-4" />
-                            ) : (
-                              <Eye className="w-4 h-4" />
-                            )}
-                            <span>
-                              {episode.inconsistencyStatus === "READY"
-                                ? "COMPLETE"
-                                : episode.inconsistencyStatus || "UNKNOWN"}
-                            </span>
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() =>
+                                onStartCoding(episode.doc_id, "doc-status")
+                              }
+                              disabled={episode.inconsistencyStatus === "READY"}
+                              className={`inline-flex items-center gap-2 px-2 py-1 text-xs font-bold rounded-full transition-colors ${
+                                episode.inconsistencyStatus === "READY"
+                                  ? "bg-green-100 text-green-800 cursor-not-allowed"
+                                  : "bg-orange-100 text-orange-800 hover:bg-orange-200 cursor-pointer"
+                              }`}
+                            >
+                              {episode.inconsistencyStatus === "READY" ? (
+                                <CheckCircle className="w-4 h-4 text-green-600" />
+                              ) : (
+                                <Clock className="w-4 h-4 text-orange-600" />
+                              )}
+                              <span>
+                                {episode.inconsistencyStatus === "READY"
+                                  ? "COMPLETE"
+                                  : episode.inconsistencyStatus || "INCOMPLETE"}
+                              </span>
+                            </button>
+                          </div>
                         </td>
-
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-2">
                             <div className="text-sm font-semibold text-gray-900">
