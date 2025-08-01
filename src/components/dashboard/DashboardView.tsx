@@ -375,11 +375,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       Doc Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Accuracy Score
+                      Accuracy
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
-                      Recall
-                    </th>
+
                     <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                       Actions
                     </th>
@@ -499,18 +497,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                               disabled={episode.inconsistencyStatus === "READY"}
                               className={`inline-flex items-center gap-2 px-2 py-1 text-xs font-bold rounded-full transition-colors ${
                                 episode.inconsistencyStatus === "READY"
-                                  ? "bg-green-100 text-green-800 cursor-not-allowed"
+                                  ? "bg-gray-100 text-gray-800 cursor-not-allowed"
                                   : "bg-orange-100 text-orange-800 hover:bg-orange-200 cursor-pointer"
                               }`}
                             >
                               {episode.inconsistencyStatus === "READY" ? (
-                                <CheckCircle className="w-4 h-4 text-green-600" />
+                                <Clock className="w-4 h-4 text-gray-600" />
                               ) : (
                                 <Clock className="w-4 h-4 text-orange-600" />
                               )}
                               <span>
                                 {episode.inconsistencyStatus === "READY"
-                                  ? "COMPLETE"
+                                  ? "YET TO REVIEW"
                                   : episode.inconsistencyStatus || "INCOMPLETE"}
                               </span>
                             </button>
@@ -525,13 +523,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center gap-2">
-                            <div className="text-sm font-semibold text-gray-900">
-                              {formatRecall(episode?.accuracy_score?.recall)}
-                            </div>
-                          </div>
-                        </td>
+
                         <td className="px-6 py-4 whitespace-nowrap">
                           <button
                             onClick={() =>
