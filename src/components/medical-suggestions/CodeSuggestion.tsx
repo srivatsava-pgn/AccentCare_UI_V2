@@ -1,3 +1,4 @@
+import MarkdownPreview from "@uiw/react-markdown-preview";
 import {
   Check,
   ChevronDown,
@@ -272,17 +273,63 @@ export const CodeSuggestion: React.FC<CodeSuggestionProps> = ({
           </div>
 
           {/* AI Reasoning - Only show for non-manually added codes */}
-          {!suggestion.isManuallyAdded && (
+          {!suggestion.isManuallyAdded && suggestion.aiReasoning && (
             <div>
               <h4 className="font-bold text-gray-800 mb-2 text-sm">
                 AI Reasoning
               </h4>
-              <p className="text-sm text-gray-700 bg-blue-50 p-3 rounded border-l-4 border-blue-200 font-medium">
-                {suggestion.aiReasoning}
-              </p>
+              <div className="text-sm text-gray-700 bg-blue-50 p-3 rounded border-l-4 border-blue-200 font-medium">
+                <style>
+                  {`
+                      .w-md-editor-text-area .anchor {
+                        display: none !important;
+                      }
+                      .wmde-markdown .anchor {
+                        display: none !important;
+                      }
+                      .wmde-markdown h1 .anchor,
+                      .wmde-markdown h2 .anchor,
+                      .wmde-markdown h3 .anchor,
+                      .wmde-markdown h4 .anchor,
+                      .wmde-markdown h5 .anchor,
+                      .wmde-markdown h6 .anchor {
+                        display: none !important;
+                      }
+                      .wmde-markdown .octicon-link {
+                        display: none !important;
+                      }
+                    `}
+                </style>
+                <MarkdownPreview
+                  source={String(suggestion.aiReasoning)}
+                  data-color-mode="light"
+                  style={{
+                    backgroundColor: "transparent",
+                    fontSize: "13px",
+                    color: "#374151",
+                  }}
+                  components={{
+                    h2: ({ children, ...props }) => (
+                      <h3
+                        {...props}
+                        className="font-bold text-gray-800 mt-3 mb-2 text-sm"
+                      >
+                        {children}
+                      </h3>
+                    ),
+                    h3: ({ children, ...props }) => (
+                      <h4
+                        {...props}
+                        className="font-semibold text-gray-800 mt-2 mb-1 text-sm"
+                      >
+                        {children}
+                      </h4>
+                    ),
+                  }}
+                />
+              </div>
             </div>
           )}
-
           {/* Supporting Evidence - Only show for non-manually added codes */}
           {!suggestion.isManuallyAdded && (
             <div>
