@@ -1,13 +1,15 @@
 import {
   Calendar,
   CheckCircle,
+  ChevronDown,
+  ChevronUp,
   ExternalLink,
   FileText,
   MessageSquare,
   User,
   XCircle,
 } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
 import {
   InconsistencyApiResponse,
   InconsistencySupportingSentence,
@@ -26,6 +28,12 @@ export const InconsistencyPanel: React.FC<InconsistencyPanelProps> = ({
   onNavigateToEvidence,
   onReturnToDashboard,
 }) => {
+  // State for main sections
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set()); // All sections collapsed by default
+  
+  // State for coordination note accordion items
+  const [expandedCoordinationItems, setExpandedCoordinationItems] = useState<Set<number>>(new Set([0])); // First coordination note expanded by default
+
   // Helper function to convert bbox array to BoundingBox
   const convertBboxToBoundingBox = (
     bbox: number[][][]
@@ -61,6 +69,30 @@ export const InconsistencyPanel: React.FC<InconsistencyPanelProps> = ({
     onNavigateToEvidence(evidence);
   };
 
+  const toggleSection = (sectionName: string) => {
+    setExpandedSections(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(sectionName)) {
+        newSet.delete(sectionName);
+      } else {
+        newSet.add(sectionName);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleCoordinationItem = (index: number) => {
+    setExpandedCoordinationItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
+  };
+
   if (!inconsistencyResult) {
     return (
       <div className="flex flex-col h-full bg-white">
@@ -91,6 +123,7 @@ export const InconsistencyPanel: React.FC<InconsistencyPanelProps> = ({
 
   const results = inconsistencyResult.results;
   const isComplete = inconsistencyResult.status === "COMPLETE";
+  const isNotReady = inconsistencyResult.status === "NOT_READY";
 
   return (
     <div className="flex flex-col h-full bg-white">
@@ -109,148 +142,249 @@ export const InconsistencyPanel: React.FC<InconsistencyPanelProps> = ({
             </p>
           </div>
         ) : (
-          // Incomplete status - show coordination note and supporting sentences
+          // Incomplete or Not Ready status - show detailed information
           <div className="flex flex-col h-full">
-            {/* Reasoning Section - Top 1/3 */}
-            <div
-              className="border-b border-gray-200 p-4"
-              style={{ minHeight: "33%" }}
-            >
-              <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
-                <MessageSquare className="w-5 h-5 text-orange-600" />
-                Reasoning
-              </h3>
-              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                <p className="text-sm font-medium text-orange-800 leading-relaxed">
-                  {Array.isArray(results)
-                    ? "No reasoning available"
-                    : results.reasoning}
-                </p>
+            {/* Status Header */}
+            <div className="border-b border-gray-200 p-4">
+              <div className="flex items-center gap-3 mb-2">
+                {isNotReady ? (
+                  <XCircle className="w-6 h-6 text-red-600" />
+                ) : (
+                  <MessageSquare className="w-6 h-6 text-orange-600" />
+                )}
+                <h2 className="text-lg font-bold text-gray-800">
+                  {isNotReady ? "Not Ready for Coding" : "Inconsistency Review"}
+                </h2>
+              </div>
+              <div className={`inline-flex px-3 py-1 rounded-full text-sm font-bold ${
+                isNotReady 
+                  ? "bg-red-100 text-red-800" 
+                  : "bg-orange-100 text-orange-800"
+              }`}>
+                Status: {inconsistencyResult.status.replace('_', ' ')}
               </div>
             </div>
 
-            {/* Coordination Note - Top 1/3 */}
-            <div
-              className="border-b border-gray-200 p-4"
-              style={{ minHeight: "33%" }}
-            >
-              <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
-                <MessageSquare className="w-5 h-5 text-orange-600" />
-                Coordination Note
-              </h3>
-              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                <p className="text-sm font-medium text-orange-800 leading-relaxed">
-                  {Array.isArray(results)
-                    ? "No coordination note available"
-                    : results.coordination_note}
-                </p>
-              </div>
-
-              {/* Additional Info */}
-              {!Array.isArray(results) && (
-                <div className="mt-4 grid grid-cols-2 gap-4">
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    <div className="text-xs font-semibold text-gray-600 mb-1">
-                      Coding Ready
-                    </div>
-                    <div
-                      className={`flex items-center gap-1 ${
-                        results.coding_ready ? "text-green-700" : "text-red-700"
-                      }`}
-                    >
-                      {results.coding_ready ? (
-                        <CheckCircle className="w-4 h-4" />
+            {/* Scrollable Content Area */}
+            <div className="flex-1 overflow-auto p-4 space-y-4">
+              {/* Reasoning Section - Collapsible */}
+              <div className="border border-gray-200 rounded-lg overflow-hidden">
+                <button
+                  onClick={() => toggleSection('reasoning')}
+                  className="w-full flex items-center justify-between p-4 bg-orange-50 hover:bg-orange-100 transition-colors text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <MessageSquare className="w-5 h-5 text-orange-600" />
+                    <h3 className="text-base font-bold text-gray-800">Reasoning</h3>
+                  </div>
+                  {expandedSections.has('reasoning') ? (
+                    <ChevronUp className="w-5 h-5 text-orange-600 flex-shrink-0" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-orange-600 flex-shrink-0" />
+                  )}
+                </button>
+                
+                {expandedSections.has('reasoning') && (
+                  <div className="p-4 bg-white border-t border-orange-200">
+                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                      {Array.isArray(results) || !results.reasoning ? (
+                        <p className="text-sm font-medium text-orange-800 leading-relaxed">
+                          No reasoning available
+                        </p>
                       ) : (
-                        <XCircle className="w-4 h-4" />
-                      )}
-                      <span className="text-sm font-bold">
-                        {results.coding_ready ? "Yes" : "No"}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    <div className="text-xs font-semibold text-gray-600 mb-1">
-                      Supporting Evidence
-                    </div>
-                    <div className="text-sm font-bold text-gray-800">
-                      {results.supporting_sentences?.length || 0} items
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Supporting Sentences - Bottom 2/3 */}
-            <div className="flex-1 p-4 overflow-auto">
-              <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <FileText className="w-5 h-5 text-blue-600" />
-                Supporting Evidence
-              </h3>
-
-              {Array.isArray(results) || !results.supporting_sentences ? (
-                <div className="text-center py-8 text-gray-500">
-                  <FileText className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                  <p className="font-semibold">
-                    No supporting evidence available
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {results.supporting_sentences.map((sentence, index) => (
-                    <div
-                      key={index}
-                      className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
-                      onClick={() => handleSentenceClick(sentence)}
-                    >
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                          <FileText className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                          <span className="font-semibold text-gray-800 text-sm">
-                            {sentence.source_document_name}
-                          </span>
+                        <div className="text-sm font-medium text-orange-800 leading-relaxed whitespace-pre-wrap">
+                          {results.reasoning}
                         </div>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleSentenceClick(sentence);
-                          }}
-                          className="text-blue-600 hover:text-blue-700 flex items-center gap-1 text-xs font-semibold transition-colors"
-                        >
-                          <ExternalLink className="w-3 h-3" />
-                          View
-                        </button>
-                      </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
 
-                      <div className="mb-3">
-                        <p className="text-sm text-gray-700 font-medium leading-relaxed">
-                          {sentence.sentence}
+              {/* Coordination Notes Section - Collapsible */}
+              <div className="border border-gray-200 rounded-lg overflow-hidden">
+                <button
+                  onClick={() => toggleSection('coordination')}
+                  className="w-full flex items-center justify-between p-4 bg-orange-50 hover:bg-orange-100 transition-colors text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <MessageSquare className="w-5 h-5 text-orange-600" />
+                    <h3 className="text-base font-bold text-gray-800">Coordination Notes</h3>
+                  </div>
+                  {expandedSections.has('coordination') ? (
+                    <ChevronUp className="w-5 h-5 text-orange-600 flex-shrink-0" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-orange-600 flex-shrink-0" />
+                  )}
+                </button>
+                
+                {expandedSections.has('coordination') && (
+                  <div className="p-4 bg-white border-t border-orange-200">
+                    {Array.isArray(results) || !results.coordination_note ? (
+                      <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                        <p className="text-sm font-medium text-orange-800 leading-relaxed">
+                          No coordination notes available
                         </p>
                       </div>
-
-                      <div className="flex items-center gap-4 text-xs text-gray-500">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />
-                          <span className="font-medium">
-                            DOS: {sentence.dos}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <FileText className="w-3 h-3" />
-                          <span className="font-medium">
-                            Page {sentence.page_number}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <User className="w-3 h-3" />
-                          <span className="font-medium">
-                            Section: {sentence.section}
-                          </span>
-                        </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {typeof results.coordination_note === 'object' && !Array.isArray(results.coordination_note) ? (
+                          Object.entries(results.coordination_note).map(([key, value], index) => (
+                            <div key={index} className="border border-orange-200 rounded-lg overflow-hidden">
+                              {/* Coordination Note Accordion Header */}
+                              <button
+                                onClick={() => toggleCoordinationItem(index)}
+                                className="w-full flex items-center justify-between p-3 bg-orange-50 hover:bg-orange-100 transition-colors text-left"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm font-bold text-orange-800">
+                                    {key}
+                                  </span>
+                                </div>
+                                {expandedCoordinationItems.has(index) ? (
+                                  <ChevronUp className="w-4 h-4 text-orange-600 flex-shrink-0" />
+                                ) : (
+                                  <ChevronDown className="w-4 h-4 text-orange-600 flex-shrink-0" />
+                                )}
+                              </button>
+                              
+                              {/* Coordination Note Accordion Content */}
+                              {expandedCoordinationItems.has(index) && (
+                                <div className="p-4 bg-white border-t border-orange-200">
+                                  <p className="text-sm font-medium text-orange-800 leading-relaxed">
+                                    {value}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          ))
+                        ) : Array.isArray(results.coordination_note) ? (
+                          // Backward compatibility for array format
+                          results.coordination_note.map((note, index) => (
+                            <div key={index} className="border border-orange-200 rounded-lg overflow-hidden">
+                              {/* Coordination Note Accordion Header */}
+                              <button
+                                onClick={() => toggleCoordinationItem(index)}
+                                className="w-full flex items-center justify-between p-3 bg-orange-50 hover:bg-orange-100 transition-colors text-left"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm font-bold text-orange-800">
+                                    Coordination Note {index + 1}
+                                  </span>
+                                  <span className="text-xs bg-orange-200 text-orange-700 px-2 py-1 rounded-full font-medium">
+                                    {note.length > 50 ? `${note.substring(0, 50)}...` : note.substring(0, 50)}
+                                  </span>
+                                </div>
+                                {expandedCoordinationItems.has(index) ? (
+                                  <ChevronUp className="w-4 h-4 text-orange-600 flex-shrink-0" />
+                                ) : (
+                                  <ChevronDown className="w-4 h-4 text-orange-600 flex-shrink-0" />
+                                )}
+                              </button>
+                              
+                              {/* Coordination Note Accordion Content */}
+                              {expandedCoordinationItems.has(index) && (
+                                <div className="p-4 bg-white border-t border-orange-200">
+                                  <p className="text-sm font-medium text-orange-800 leading-relaxed">
+                                    {note}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          ))
+                        ) : (
+                          // Single coordination note (backward compatibility)
+                          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                            <p className="text-sm font-medium text-orange-800 leading-relaxed">
+                              {results.coordination_note}
+                            </p>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ))}
+                    )}
+
+                  </div>
+                )}
+              </div>
+
+              {/* Supporting Evidence Section - Always Visible */}
+              <div className="border border-gray-200 rounded-lg overflow-hidden">
+                <div className="p-4 bg-blue-50 border-b border-blue-200">
+                  <h3 className="text-base font-bold text-gray-800 flex items-center gap-3">
+                    <FileText className="w-5 h-5 text-blue-600" />
+                    Supporting Evidence
+                  </h3>
                 </div>
-              )}
+                
+                <div className="p-4 bg-white">
+                  {Array.isArray(results) || !results.supporting_sentences ? (
+                    <div className="text-center py-8 text-gray-500">
+                      <FileText className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                      <p className="font-semibold">
+                        No supporting evidence available
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {results.supporting_sentences.map((sentence, index) => (
+                        <div
+                          key={index}
+                          className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                          onClick={() => handleSentenceClick(sentence)}
+                        >
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <FileText className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                              <span className="font-semibold text-gray-800 text-sm">
+                                {sentence.source_document_name}
+                              </span>
+                            </div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSentenceClick(sentence);
+                              }}
+                              className="text-blue-600 hover:text-blue-700 flex items-center gap-1 text-xs font-semibold transition-colors"
+                            >
+                              <ExternalLink className="w-3 h-3" />
+                              View
+                            </button>
+                          </div>
+
+                          <div className="mb-3">
+                            <p className="text-sm text-gray-700 font-medium leading-relaxed">
+                              {sentence.sentence}
+                            </p>
+                          </div>
+
+                          <div className="flex items-center gap-4 text-xs text-gray-500">
+                            {sentence.dos && (
+                              <div className="flex items-center gap-1">
+                                <Calendar className="w-3 h-3" />
+                                <span className="font-medium">
+                                  DOS: {sentence.dos}
+                                </span>
+                              </div>
+                            )}
+                            <div className="flex items-center gap-1">
+                              <FileText className="w-3 h-3" />
+                              <span className="font-medium">
+                                Page {sentence.page_number}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <User className="w-3 h-3" />
+                              <span className="font-medium">
+                                Section: {sentence.section}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         )}

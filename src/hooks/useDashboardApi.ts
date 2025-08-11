@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { apiClient } from "../services/apiClient";
 import {
   DocStatusType,
-  InconsistencyApiResponse,
   ProjectData,
   ProjectsApiResponse,
 } from "../types";
@@ -110,32 +109,7 @@ export const useDashboardApi = () => {
 
       const data: ProjectsApiResponse = await apiClient.get("/projects");
 
-      // Fetch inconsistency status for each project
-      const projectsWithInconsistency = await Promise.all(
-        data.projects.map(async (project) => {
-          try {
-            const inconsistencyData: InconsistencyApiResponse =
-              await apiClient.get(`/inconsistency-results/${project.doc_id}`);
-            return {
-              ...project,
-              inconsistencyStatus: inconsistencyData.status as
-                | "COMPLETE"
-                | "INCOMPLETE",
-            };
-          } catch (error) {
-            console.error(
-              `Error fetching inconsistency for ${project.doc_id}:`,
-              error
-            );
-            return {
-              ...project,
-              inconsistencyStatus: "ERROR" as const,
-            };
-          }
-        })
-      );
-
-      const transformedCases = transformApiData(projectsWithInconsistency);
+      const transformedCases = transformApiData(data.projects);
 
       setDashboardCases(transformedCases);
     } catch (err) {
@@ -155,8 +129,11 @@ export const useDashboardApi = () => {
           accept_count: 8,
           reject_count: 2,
           remaining_count: 0,
+          ai_generated_count: 10,
+          newly_added_count: 0,
           review_status: "COMPLETED",
           episode_id: "EP_PHYLLIS_S_VAUGHAN",
+          coding_readiness: "READY",
           revenueRate: "95%",
           docStatus: "Complete",
         },
@@ -169,8 +146,11 @@ export const useDashboardApi = () => {
           accept_count: 10,
           reject_count: 4,
           remaining_count: 0,
+          ai_generated_count: 14,
+          newly_added_count: 0,
           review_status: "COMPLETED",
           episode_id: "EP_JOHN_M_ANDERSON",
+          coding_readiness: "READY",
           revenueRate: "92%",
           docStatus: "Complete",
         },
@@ -183,8 +163,11 @@ export const useDashboardApi = () => {
           accept_count: 0,
           reject_count: 0,
           remaining_count: 13,
+          ai_generated_count: 13,
+          newly_added_count: 0,
           review_status: "YET TO REVIEW",
           episode_id: "EP_DAVID_WILLIAMS",
+          coding_readiness: "YET_TO_REVIEW",
           revenueRate: "—",
           docStatus: "Incomplete",
         },
@@ -197,8 +180,11 @@ export const useDashboardApi = () => {
           accept_count: 0,
           reject_count: 3,
           remaining_count: 18,
+          ai_generated_count: 21,
+          newly_added_count: 0,
           review_status: "IN PROGRESS",
           episode_id: "EP_JENNIFER_BROWN",
+          coding_readiness: "NOT_READY",
           revenueRate: "—",
           docStatus: "Inconsistent",
         },
