@@ -450,34 +450,42 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-2">
-                            {episode.review_status === "COMPLETED" ? (
-                              <>
-                                <CheckCircle className="w-4 h-4 text-green-600" />
-                                <span className="inline-flex px-2 py-1 text-xs font-bold rounded-full bg-green-100 text-green-800">
-                                  COMPLETED
-                                </span>
-                              </>
-                            ) : episode.review_status === "YET TO REVIEW" ? (
-                              <>
+                            <button
+                              onClick={() =>
+                                episode.review_status === "IN PROGRESS"
+                                  ? onStartCoding(episode.doc_id, "coding")
+                                  : undefined
+                              }
+                              disabled={episode.review_status === "YET TO REVIEW" || episode.review_status === "COMPLETED"}
+                              className={`inline-flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition-colors min-w-[120px] justify-center ${
+                                episode.review_status === "YET TO REVIEW"
+                                  ? "bg-gray-100 text-gray-800 cursor-not-allowed border border-gray-300"
+                                  : episode.review_status === "COMPLETED"
+                                  ? "bg-green-100 text-green-800 cursor-not-allowed border border-green-300"
+                                  : episode.review_status === "IN PROGRESS"
+                                  ? "bg-amber-500 text-white hover:bg-amber-600 cursor-pointer shadow-md hover:shadow-lg transform hover:scale-105 border border-amber-600"
+                                  : "bg-gray-100 text-gray-800 cursor-not-allowed border border-gray-300"
+                              }`}
+                            >
+                              {episode.review_status === "YET TO REVIEW" ? (
                                 <Clock className="w-4 h-4 text-gray-600" />
-                                <span className="inline-flex px-2 py-1 text-xs font-bold rounded-full bg-gray-100 text-gray-800">
-                                  YET TO REVIEW
-                                </span>
-                              </>
-                            ) : (
-                              <>
-                                <Clock
-                                  className="w-4 h-4 text-yellow-600"
-                                  style={{ color: "#000" }}
-                                />
-                                <span
-                                  className="inline-flex px-2 py-1 text-xs font-bold rounded-full bg-yellow-100 text-black-800"
-                                  style={{ background: "#ffff00" }}
-                                >
-                                  {episode.review_status}
-                                </span>
-                              </>
-                            )}
+                              ) : episode.review_status === "COMPLETED" ? (
+                                <CheckCircle className="w-4 h-4 text-green-600" />
+                              ) : episode.review_status === "IN PROGRESS" ? (
+                                <Clock className="w-4 h-4 text-white" />
+                              ) : (
+                                <Clock className="w-4 h-4 text-gray-600" />
+                              )}
+                              <span>
+                                {episode.review_status === "YET TO REVIEW"
+                                  ? "YET TO REVIEW"
+                                  : episode.review_status === "COMPLETED"
+                                  ? "COMPLETED"
+                                  : episode.review_status === "IN PROGRESS"
+                                  ? "IN PROGRESS ➤"
+                                  : episode.review_status}
+                              </span>
+                            </button>
                           </div>
                         </td>
 
@@ -492,24 +500,38 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() =>
-                                onStartCoding(episode.doc_id, "doc-status")
+                                episode.coding_readiness === "NOT_READY" 
+                                  ? onStartCoding(episode.doc_id, "doc-status")
+                                  : undefined
                               }
-                              disabled={episode.inconsistencyStatus === "READY"}
-                              className={`inline-flex items-center gap-2 px-2 py-1 text-xs font-bold rounded-full transition-colors ${
-                                episode.inconsistencyStatus === "READY"
-                                  ? "bg-gray-100 text-gray-800 cursor-not-allowed"
-                                  : "bg-orange-100 text-orange-800 hover:bg-orange-200 cursor-pointer"
+                              disabled={episode.coding_readiness === "YET_TO_REVIEW" || episode.coding_readiness === "READY"}
+                              className={`inline-flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition-colors min-w-[120px] justify-center ${
+                                episode.coding_readiness === "YET_TO_REVIEW"
+                                  ? "bg-gray-100 text-gray-800 cursor-not-allowed border border-gray-300"
+                                  : episode.coding_readiness === "READY"
+                                  ? "bg-green-100 text-green-800 cursor-not-allowed border border-green-300"
+                                  : episode.coding_readiness === "NOT_READY"
+                                  ? "bg-amber-500 text-white hover:bg-amber-600 cursor-pointer shadow-md hover:shadow-lg transform hover:scale-105 border border-amber-600"
+                                  : "bg-gray-100 text-gray-800 cursor-not-allowed border border-gray-300"
                               }`}
                             >
-                              {episode.inconsistencyStatus === "READY" ? (
+                              {episode.coding_readiness === "YET_TO_REVIEW" ? (
                                 <Clock className="w-4 h-4 text-gray-600" />
+                              ) : episode.coding_readiness === "READY" ? (
+                                <CheckCircle className="w-4 h-4 text-green-600" />
+                              ) : episode.coding_readiness === "NOT_READY" ? (
+                                <Clock className="w-4 h-4 text-white" />
                               ) : (
-                                <Clock className="w-4 h-4 text-orange-600" />
+                                <Clock className="w-4 h-4 text-gray-600" />
                               )}
                               <span>
-                                {episode.inconsistencyStatus === "READY"
+                                {episode.coding_readiness === "YET_TO_REVIEW"
                                   ? "YET TO REVIEW"
-                                  : episode.inconsistencyStatus || "INCOMPLETE"}
+                                  : episode.coding_readiness === "READY"
+                                  ? "COMPLETE"
+                                  : episode.coding_readiness === "NOT_READY"
+                                  ? "INCOMPLETE ➤"
+                                  : "UNKNOWN"}
                               </span>
                             </button>
                           </div>

@@ -422,3 +422,27 @@
 .search-nav-button:active {
   transform: scale(0.95);
 }
+/* Yellow glowing border for bounding box highlights */
+.yellow-glow-border {
+  border: 4px solid #fbbf24; /* Thick yellow border */
+  background: transparent; /* No fill */
+  animation: yellow-glow-pulse 2s ease-in-out infinite;
+}
+
+@keyframes yellow-glow-pulse {
+  0%, 100% {
+    border-color: #fbbf24;
+    box-shadow: 
+      0 0 0 2px rgba(251, 191, 36, 0.4),
+      0 0 0 4px rgba(251, 191, 36, 0.2),
+      0 0 0 6px rgba(251, 191, 36, 0.1);
+  }
+  50% {
+    border-color: #f59e0b;
+    box-shadow: 
+      0 0 0 2px rgba(245, 158, 11, 0.6),
+      0 0 0 4px rgba(245, 158, 11, 0.4),
+      0 0 0 6px rgba(245, 158, 11, 0.2),
+      0 0 0 8px rgba(245, 158, 11, 0.1);
+  }
+}

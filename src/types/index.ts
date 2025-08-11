@@ -122,6 +122,7 @@ export interface ProjectData {
   newly_added_count: number;
   review_status: string;
   episode_id: string;
+  coding_readiness?: "YET_TO_REVIEW" | "READY" | "NOT_READY";
   // Enhanced fields for dashboard display
   revenueRate?: string;
   docStatus?: DocStatusType;

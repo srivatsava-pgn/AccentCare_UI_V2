@@ -597,7 +597,6 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
       width: `${right - left}px`,
       height: `${bottom - top}px`,
       borderRadius: '12px',
-      boxShadow: '0 0 20px rgba(59, 130, 246, 0.6), 0 0 40px rgba(59, 130, 246, 0.3)',
     };
   };
 
@@ -814,7 +813,7 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
                    highlightedEvidence.page === pageNumber && 
                    imageRefs.current[pageNumber] && (
                     <div
-                      className="absolute border-3 border-blue-500 bg-blue-200 bg-opacity-25 pointer-events-none transition-all duration-700 ease-in-out animate-pulse shadow-2xl"
+                      className="absolute pointer-events-none transition-all duration-700 ease-in-out yellow-glow-border"
                       style={getHighlightStyle(pageNumber, imageRefs.current[pageNumber])}
                     />
                   )}
